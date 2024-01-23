@@ -54,7 +54,7 @@ questions_prompt = ChatPromptTemplate.from_messages(
     Question: What is the color of the ocean?
     Answers: Red|Yellow|Green|Blue(o)
          
-    Question: What is the capital or Georgia?
+    Question: What is the capital of Georgia?
     Answers: Baku|Tbilisi(o)|Manila|Beirut
          
     Question: When was Avatar released?
