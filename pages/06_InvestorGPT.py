@@ -8,6 +8,7 @@ from langchain.tools import BaseTool
 from pydantic import BaseModel, Field
 from langchain.agents import initialize_agent, AgentType
 from langchain.utilities import DuckDuckGoSearchAPIWrapper
+#from langchain.utilities import GoogleSearchAPIWrapper
 
 llm = ChatOpenAI(temperature=0.1, model_name="gpt-3.5-turbo-1106")
 
@@ -33,7 +34,10 @@ class StockMarketSymbolSearchTool(BaseTool):
 
     def _run(self, query):
         ddg = DuckDuckGoSearchAPIWrapper()
+        #google_search = GoogleSearchAPIWrapper()
         return ddg.run(query)
+        #return google_search.run(query)
+
 
 
 class CompanyOverviewArgsSchema(BaseModel):
