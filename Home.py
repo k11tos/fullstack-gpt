@@ -17,5 +17,6 @@ Here are the apps I made:
 - [x] [❓ QuizGPT](/QuizGPT)
 - [x] [🖥️ SiteGPT](/SiteGPT)
 - [x] [📈 InvestorGPT](/InvestorGPT)
+- [x] [📈 Test](/Test)
 """
 )
