@@ -8,6 +8,8 @@ from langchain.vectorstores.faiss import FAISS
 from langchain.chat_models import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
 import streamlit as st
+import platform
+
 
 st.set_page_config(
     page_title="DocumentGPT",
@@ -40,11 +42,21 @@ llm = ChatOpenAI(
 
 @st.cache_data(show_spinner="Embedding file...")
 def embed_file(file):
+    platform_name = platform.system()
+    if platform_name == 'Darwin':
+        dir_delimeter = '/'
+    elif platform_name == 'Linux':
+        dir_delimeter = '\\'
+    else:
+        st.write("Error")
+        st.write(platform_name)
+        st.write("Error")
+
     file_content = file.read()
-    file_path = f".\.cache\files\{file.name}"
+    file_path = f".{dir_delimeter}.cache{dir_delimeter}files{dir_delimeter}{file.name}"
     with open(file_path, "wb") as f:
         f.write(file_content)
-    cache_dir = LocalFileStore(f".\.cache\embeddings\{file.name}")
+    cache_dir = LocalFileStore(f".{dir_delimeter}.cache{dir_delimeter}embeddings{dir_delimeter}{file.name}")
     splitter = CharacterTextSplitter.from_tiktoken_encoder(
         separator="\n",
         chunk_size=600,
