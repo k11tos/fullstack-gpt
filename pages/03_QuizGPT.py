@@ -7,6 +7,7 @@ from langchain.callbacks import StreamingStdOutCallbackHandler
 import streamlit as st
 from langchain.retrievers import WikipediaRetriever
 from langchain.schema import BaseOutputParser, output_parser
+import platform
 
 
 class JsonOutputParser(BaseOutputParser):
@@ -203,8 +204,14 @@ formatting_chain = formatting_prompt | llm
 
 @st.cache_data(show_spinner="Loading file...")
 def split_file(file):
+    platform_name = platform.system()
+    if platform_name == 'Darwin':
+        dir_delimeter = '/'
+    elif platform_name == 'Linux':
+        dir_delimeter = '\\'
+
     file_content = file.read()
-    file_path = f".\.cache\quiz_files\{file.name}"
+    file_path = f".{dir_delimeter}.cache{dir_delimeter}quiz_files{dir_delimeter}{file.name}"
     with open(file_path, "wb") as f:
         f.write(file_content)
     splitter = CharacterTextSplitter.from_tiktoken_encoder(
