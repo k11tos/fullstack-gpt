@@ -202,6 +202,6 @@ else:
                             right_answer = answer["answer"]
                     st.error("Wrong! Right answer is " + right_answer)
                 else:
-                    st.error("Wrong!)
+                    st.error("Wrong!")
             count = count + 1
         button = st.form_submit_button()
