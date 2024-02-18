@@ -167,6 +167,9 @@ with st.sidebar:
         topic = st.text_input("Search Wikipedia...")
         if topic:
             docs = wiki_search(topic)
+    
+    on = st.toggle("Right answer")
+
 
 
 if not docs:
@@ -194,6 +197,10 @@ else:
             if {"answer": value, "correct": True} in question["answers"]:
                 st.success("Correct!")
             elif value is not None:
-                st.error("Wrong!")
+                if on:
+                    for answer in question["answers"]:
+                        if answer["correct"]:
+                            right_answer = answer["answer"]
+                    st.error("Wrong! Right answer is " + right_answer)
             count = count + 1
         button = st.form_submit_button()
