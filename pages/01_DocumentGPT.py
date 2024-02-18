@@ -9,6 +9,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
 import streamlit as st
 import platform
+import os
+import os.path
 
 
 st.set_page_config(
@@ -50,9 +52,11 @@ def embed_file(file):
 
     file_content = file.read()
     file_path = f".{dir_delimeter}.cache{dir_delimeter}files{dir_delimeter}{file.name}"
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, "wb") as f:
         f.write(file_content)
     cache_dir = LocalFileStore(f".{dir_delimeter}.cache{dir_delimeter}embeddings{dir_delimeter}{file.name}")
+    os.makedirs(os.path.dirname(cache_dir), exist_ok=True)
     splitter = CharacterTextSplitter.from_tiktoken_encoder(
         separator="\n",
         chunk_size=600,

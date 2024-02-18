@@ -7,6 +7,9 @@ from langchain.callbacks import StreamingStdOutCallbackHandler
 import streamlit as st
 from langchain.retrievers import WikipediaRetriever
 import platform
+import os
+import os.path
+
 
 
 quiz_schema = {
@@ -97,7 +100,11 @@ questions_prompt = ChatPromptTemplate.from_messages(
          
     Question: Who was Julius Caesar?
     Answers: A Roman Emperor(o)|Painter|Actor|Model
-         
+    
+    If you use function named create_quiz,
+    it will use boolean type for correct answer.
+    So do not use (O) because corect will replace it.
+             
     Your turn!
          
     Context: {context}
@@ -120,6 +127,7 @@ def split_file(file):
 
     file_content = file.read()
     file_path = f".{dir_delimeter}.cache{dir_delimeter}quiz_files{dir_delimeter}{file.name}"
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, "wb") as f:
         f.write(file_content)
     splitter = CharacterTextSplitter.from_tiktoken_encoder(
