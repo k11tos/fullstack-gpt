@@ -10,13 +10,43 @@ from langchain.schema import BaseOutputParser, output_parser
 import platform
 
 
-class JsonOutputParser(BaseOutputParser):
-    def parse(self, text):
-        text = text.replace("```", "").replace("json", "")
-        return json.loads(text)
-
-
-output_parser = JsonOutputParser()
+quiz_schema = {
+    "name": "create_quiz",
+    "description": "function that takes a list of questions and answers and return a quiz",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "questions": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "question": {
+                            "type": "string",
+                        },
+                        "answers": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "answer": {
+                                        "type": "string",
+                                    },
+                                    "correct": {
+                                        "type": "boolean",
+                                    }
+                                },
+                                "required": ["answer", "correct"]
+                            }
+                        }
+                    },
+                    "required": ["question", "answers"],
+                }
+            },
+        },
+        "required": ["questions"],
+    }
+}
 
 st.set_page_config(
     page_title="QuizGPT",
@@ -30,6 +60,11 @@ llm = ChatOpenAI(
     model="gpt-3.5-turbo-1106",
     streaming=True,
     callbacks=[StreamingStdOutCallbackHandler()],
+).bind(
+    function_call={
+        "name": "create_quiz"
+        },
+    functions=[quiz_schema]
 )
 
 
@@ -74,132 +109,6 @@ questions_prompt = ChatPromptTemplate.from_messages(
 
 questions_chain = {"context": format_docs} | questions_prompt | llm
 
-formatting_prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            """
-    You are a powerful formatting algorithm.
-     
-    You format exam questions into JSON format.
-    Answers with (o) are the correct ones.
-     
-    Example Input:
-
-    Question: What is the color of the ocean?
-    Answers: Red|Yellow|Green|Blue(o)
-         
-    Question: What is the capital or Georgia?
-    Answers: Baku|Tbilisi(o)|Manila|Beirut
-         
-    Question: When was Avatar released?
-    Answers: 2007|2001|2009(o)|1998
-         
-    Question: Who was Julius Caesar?
-    Answers: A Roman Emperor(o)|Painter|Actor|Model
-    
-     
-    Example Output:
-     
-    ```json
-    {{ "questions": [
-            {{
-                "question": "What is the color of the ocean?",
-                "answers": [
-                        {{
-                            "answer": "Red",
-                            "correct": false
-                        }},
-                        {{
-                            "answer": "Yellow",
-                            "correct": false
-                        }},
-                        {{
-                            "answer": "Green",
-                            "correct": false
-                        }},
-                        {{
-                            "answer": "Blue",
-                            "correct": true
-                        }}
-                ]
-            }},
-                        {{
-                "question": "What is the capital or Georgia?",
-                "answers": [
-                        {{
-                            "answer": "Baku",
-                            "correct": false
-                        }},
-                        {{
-                            "answer": "Tbilisi",
-                            "correct": true
-                        }},
-                        {{
-                            "answer": "Manila",
-                            "correct": false
-                        }},
-                        {{
-                            "answer": "Beirut",
-                            "correct": false
-                        }}
-                ]
-            }},
-                        {{
-                "question": "When was Avatar released?",
-                "answers": [
-                        {{
-                            "answer": "2007",
-                            "correct": false
-                        }},
-                        {{
-                            "answer": "2001",
-                            "correct": false
-                        }},
-                        {{
-                            "answer": "2009",
-                            "correct": true
-                        }},
-                        {{
-                            "answer": "1998",
-                            "correct": false
-                        }}
-                ]
-            }},
-            {{
-                "question": "Who was Julius Caesar?",
-                "answers": [
-                        {{
-                            "answer": "A Roman Emperor",
-                            "correct": true
-                        }},
-                        {{
-                            "answer": "Painter",
-                            "correct": false
-                        }},
-                        {{
-                            "answer": "Actor",
-                            "correct": false
-                        }},
-                        {{
-                            "answer": "Model",
-                            "correct": false
-                        }}
-                ]
-            }}
-        ]
-     }}
-    ```
-    Your turn!
-
-    Questions: {context}
-
-""",
-        )
-    ]
-)
-
-formatting_chain = formatting_prompt | llm
 
 
 @st.cache_data(show_spinner="Loading file...")
@@ -226,8 +135,8 @@ def split_file(file):
 
 @st.cache_data(show_spinner="Making quiz...")
 def run_quiz_chain(_docs, topic):
-    chain = {"context": questions_chain} | formatting_chain | output_parser
-    return chain.invoke(_docs)
+    response = questions_chain.invoke(_docs)
+    return json.loads(response.additional_kwargs["function_call"]["arguments"])
 
 
 @st.cache_data(show_spinner="Searching Wikipedia...")
@@ -273,15 +182,18 @@ if not docs:
 else:
     response = run_quiz_chain(docs, topic if topic else file.name)
     with st.form("questions_form"):
+        count = 0
         for question in response["questions"]:
             st.write(question["question"])
             value = st.radio(
                 "Select an option.",
                 [answer["answer"] for answer in question["answers"]],
                 index=None,
+                key=count
             )
             if {"answer": value, "correct": True} in question["answers"]:
                 st.success("Correct!")
             elif value is not None:
                 st.error("Wrong!")
+            count = count + 1
         button = st.form_submit_button()
