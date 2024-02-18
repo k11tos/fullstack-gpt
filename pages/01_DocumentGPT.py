@@ -47,10 +47,6 @@ def embed_file(file):
         dir_delimeter = '/'
     elif platform_name == 'Linux':
         dir_delimeter = '\\'
-    else:
-        st.write("Error")
-        st.write(platform_name)
-        st.write("Error")
 
     file_content = file.read()
     file_path = f".{dir_delimeter}.cache{dir_delimeter}files{dir_delimeter}{file.name}"
