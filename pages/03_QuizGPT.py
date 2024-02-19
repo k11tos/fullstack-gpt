@@ -102,7 +102,7 @@ questions_prompt = ChatPromptTemplate.from_messages(
     
     If you use function named create_quiz,
     it will use boolean type for correct answer.
-    So do not use (O) because corect will replace it.
+    So do not use (O) because correct will replace it.
              
     Your turn!
          
@@ -119,7 +119,7 @@ questions_chain = {"context": format_docs} | questions_prompt | llm
 @st.cache_data(show_spinner="Loading file...")
 def split_file(file):
     file_content = file.read()
-    file_path = f".{os.sep}.cache{os.sep}quiz_files{os.sep}{file.name}"
+    file_path = os.path.join('.', '.cache', 'quiz_files', file.name)
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, "wb") as f:
         f.write(file_content)
