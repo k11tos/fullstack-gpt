@@ -8,7 +8,6 @@ from langchain.vectorstores.faiss import FAISS
 from langchain.chat_models import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
 import streamlit as st
-import platform
 import os
 import os.path
 
@@ -44,18 +43,12 @@ llm = ChatOpenAI(
 
 @st.cache_data(show_spinner="Embedding file...")
 def embed_file(file):
-    platform_name = platform.system()
-    if platform_name == 'Darwin':
-        dir_delimeter = '/'
-    elif platform_name == 'Linux':
-        dir_delimeter = '\\'
-
     file_content = file.read()
-    file_path = f".{dir_delimeter}.cache{dir_delimeter}files{dir_delimeter}{file.name}"
+    file_path = f".{os.sep}.cache{os.sep}files{os.sep}{file.name}"
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, "wb") as f:
         f.write(file_content)
-    cache_dir = LocalFileStore(f".{dir_delimeter}.cache{dir_delimeter}embeddings{dir_delimeter}{file.name}")
+    cache_dir = LocalFileStore(f".{os.sep}.cache{os.sep}embeddings{os.sep}{file.name}")
     os.makedirs(os.path.dirname(cache_dir), exist_ok=True)
     splitter = CharacterTextSplitter.from_tiktoken_encoder(
         separator="\n",
