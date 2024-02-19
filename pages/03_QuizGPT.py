@@ -6,7 +6,6 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.callbacks import StreamingStdOutCallbackHandler
 import streamlit as st
 from langchain.retrievers import WikipediaRetriever
-import platform
 import os
 import os.path
 
@@ -119,14 +118,8 @@ questions_chain = {"context": format_docs} | questions_prompt | llm
 
 @st.cache_data(show_spinner="Loading file...")
 def split_file(file):
-    platform_name = platform.system()
-    if platform_name == 'Darwin':
-        dir_delimeter = '/'
-    elif platform_name == 'Linux':
-        dir_delimeter = '\\'
-
     file_content = file.read()
-    file_path = f".{dir_delimeter}.cache{dir_delimeter}quiz_files{dir_delimeter}{file.name}"
+    file_path = f".{os.sep}.cache{os.sep}quiz_files{os.sep}{file.name}"
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, "wb") as f:
         f.write(file_content)
