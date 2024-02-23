@@ -5,23 +5,8 @@ from langchain.vectorstores.faiss import FAISS
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
-from langchain.callbacks.base import BaseCallbackHandler
 import streamlit as st
 
-
-class ChatCallbackHandler(BaseCallbackHandler):
-    message = ""
-
-    def on_llm_start(self, *args, **kwargs):
-        self.message_box = st.empty()
-
-    def on_llm_end(self, *args, **kwargs):
-        self.message = self.message.replace("$", "\$")
-        save_message(self.message, "ai")
-
-    def on_llm_new_token(self, token, *args, **kwargs):
-        self.message += token
-        self.message_box.markdown(self.message)
 
 def save_message(message, role):
     st.session_state["messages"].append({"message": message, "role": role})
@@ -43,10 +28,6 @@ def paint_history():
 
 llm = ChatOpenAI(
     temperature=0.1,
-    streaming=True,
-    callbacks=[
-        ChatCallbackHandler(),
-    ],
 )
 
 
@@ -83,12 +64,6 @@ def get_answers(inputs):
     docs = inputs["docs"]
     question = inputs["question"]
     answers_chain = answers_prompt | llm
-    # answers = []
-    # for doc in docs:
-    #     result = answers_chain.invoke(
-    #         {"question": question, "context": doc.page_content}
-    #     )
-    #     answers.append(result.content)
     return {
         "question": question,
         "answers": [
@@ -214,8 +189,10 @@ if url:
                 | RunnableLambda(get_answers)
                 | RunnableLambda(choose_answer)
             )
-            with st.chat_message("ai"):
-                chain.invoke(message)
+            result = chain.invoke(message)
+            result_string = result.content.replace("$", "\$")
+            send_message(result_string, "ai")
+                
 
 else:
     st.session_state["messages"] = []            
